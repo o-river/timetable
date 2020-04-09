@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+
+
+  </head>
+  <body>
+    <form name="myform">
+
+      <input name="myfile" type="file" /><br />
+      <input type="radio" name="ud" value="up" checked />上り
+      <input type="radio" name="ud" value="down" />下り<br />
+      <input type="radio" name="wh" value="week" checked />平日
+      <input type="radio" name="wh" value="holi" />休日<br />
+
+      <textarea name="output" cols="80" rows="10"></textarea>
+
+    </form>
+    <a id="btn" download="dia_.csv">ダウンロード</a>
+
+    <script type="text/javascript">
+      var form = document.forms.myform;
+      var str;
+      var outstr = "";
+      const indexdataup = "TrainNum,Kind,Destination,Cars,CTrainNum,CKind,CSta,DepSta,DepTime,s53d,s52a,s52d,s51d,s50d,s49d,s48d,s34d,s33ay,s33d,s32d,s31d,s30d,s29ah,s47d,s29az,s29d,s28d,s27d,s26d,s25d,s24a,s24d,s23ah,s46d,s23az,s23d,s22d,s21d,s20d,s19d,s18ah,s45d,s44d,s43d,s42d,s41a,s41d,s40d,s39d,s38d,s37d,s36d,s35d,s18as,s18d,s17d,s16d,s15d,s14a,s14d,s13d,s12d,s11d,s10d,s9d,s8a,s8d,s7d,s6d,s5d,s4a,s4dh,s4dz,s3d,s2d,s0a,s1a,Term,Info";
+      const indexdatadown = "TrainNum,Kind,Destination,Dep,Cars,CTrainNum,CKind,CSta,DepSta,DepTime,s1d,s0d,s2d,s3d,s4a,s4d,s5d,s6d,s7d,s8a,s8d,s9d,s10d,s11d,s12d,s13d,s14a,s14d,s15d,s16d,s17d,s18a,s18ds,s35d,s36d,s37d,s38d,s39d,s40d,s41a,s41d,s42d,s43d,s44d,s45a,s18dh,s19d,s20d,s21d,s22d,s23ah,s23dz,s46a,s23dh,s24a,s24d,s25d,s26d,s27d,s28d,s29ah,s29dz,s47a,s29dh,s30d,s31d,s32d,s33a,s33dh,s33dy,s34a,s48d,s49d,s50d,s51d,s52a,s52d,s53a,Info";
+      form.myfile.addEventListener( 'change', function(e) {
+        var result = e.target.files[0];
+        console.log(result);
+        //FileReaderのインスタンスを作成する
+        var reader = new FileReader();
+        //読み込んだファイルの中身を取得する
+        reader.readAsText( result );
+        console.log(reader);
+
+        //ファイルの中身を取得後に処理を行う
+        reader.addEventListener( 'load', function() {
+          //ファイルの中身をtextarea内に表示する
+          str = reader.result
+          str = str.replace(/\r(?!\n)/g, "");
+          str = str.replace(/ /g, "");
+          form.output.textContent = str;
+
+          var arr = new Array;
+          arr = str.split('\n');
+
+          var outarr = new Array;
+          for (var i = 0; i < 72; i++) {
+             outarr.push(arr[i].replace(/\s/g, ""));
+          }
+          for(var j = 1; arr[72*(j+1)] !== undefined; j++){ //最終行に空行があってヒットするのでとりあえずヒットしないようにj+1としておいた
+            for (var i = 0; i < 72; i++){
+              outarr[i] += "," + (arr[72*j+i]).replace(/^.*?,/, "").replace(/\s/g, "");
+            }
+            console.log(outarr);
+          }
+
+    //転置ここから
+          var invarr = new Array;
+          var invoutarr = new Array;
+
+          for (var i = 0; i < outarr.length; i++) {
+            //outarr[i]からカンマ区切りで配列invarr[]を生成
+            invarr = outarr[i].split(",");
+            //invarr[i]をinvoutarr[i]にプッシュ
+            for (var j = 0; j < invarr.length; j++) {
+              if(invoutarr[j] === undefined) invoutarr[j] = new Array;
+              invoutarr[j].push(invarr[j]);
+            }
+            invarr = [];
+          }
+    //転置ここまで
+
+          for (var i = 0; i < invoutarr.length; i++) {
+
+      //種別置換
+            var kind = "";
+            switch (invoutarr[i][1]) {
+              case "":
+                kind = 0;
+                break;
+              case "快速":
+                kind = 1;
+                break;
+              case "区急":
+                kind = 2;
+                break;
+              case "急行":
+                kind = 3;
+                break;
+              case "準特":
+                kind = 4;
+                break;
+              case "特急":
+                kind = 5;
+                break;
+              case "ライナー":
+                kind = 6;
+                break;
+              default:
+                kind = 9;
+                console.log("KindErr: at " + i + ": " + invoutarr[i][1]);
+                break;
+            }
+            invoutarr[i][1] = kind;
+
+            //笹塚分離
+            //69が数字なら空白を67に追加，数位じゃないなら66に追加
+            if(form.ud == "up")
+              invoutarr[i].splice(invoutarr[i][69].search(/^[0-9]+$/) >= 0 ? 66 : 65, 0, "");
+
+            //北野分離
+            if(form.ud == "down")
+              invoutarr[i][63].search(/^[0-9]+$/) >= 0 ? invoutarr[i].splice(63, 0, "∥") : invoutarr[i].splice(62, 0, "");
+// TODO: 63とからへんがおかしい
+
+      //両数などの空欄追加
+            invoutarr[i].splice(3, 0, "", "", "", "", "", "");
+          }
+
+          if(form.ud.value == "up")
+            invoutarr.unshift(indexdataup.split(','));
+          if(form.ud.value == "down")
+            invoutarr.unshift(indexdatadown.split(','));
+
+          for (var i = 0; i < invoutarr.length; i++) {
+            outstr += invoutarr[i] + "\n";
+          }
+
+          form.output.textContent = outstr;
+
+        })
+      })
+      const btn = document.getElementById('btn');
+      btn.addEventListener('click', function() {
+        const blob = new Blob([outstr], { "type" : "text/plain" });
+        btn.href = window.URL.createObjectURL(blob);
+      })
+    </script>
+  </body>
+</html>
