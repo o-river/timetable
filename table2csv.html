@@ -10,8 +10,8 @@
     <form name="myform">
 
       <input name="myfile" type="file" /><br />
-      <input type="radio" name="ud" value="up" checked />上り
-      <input type="radio" name="ud" value="down" />下り<br />
+      <input type="radio" name="ud" value="up"  />上り
+      <input type="radio" name="ud" value="down" checked />下り<br />
       <input type="radio" name="wh" value="week" checked />平日
       <input type="radio" name="wh" value="holi" />休日<br />
 
@@ -24,8 +24,8 @@
       var form = document.forms.myform;
       var str;
       var outstr = "";
-      const indexdataup = "TrainNum,Kind,Destination,Cars,CTrainNum,CKind,CSta,DepSta,DepTime,s53d,s52a,s52d,s51d,s50d,s49d,s48d,s34d,s33ay,s33d,s32d,s31d,s30d,s29ah,s47d,s29az,s29d,s28d,s27d,s26d,s25d,s24a,s24d,s23ah,s46d,s23az,s23d,s22d,s21d,s20d,s19d,s18ah,s45d,s44d,s43d,s42d,s41a,s41d,s40d,s39d,s38d,s37d,s36d,s35d,s18as,s18d,s17d,s16d,s15d,s14a,s14d,s13d,s12d,s11d,s10d,s9d,s8a,s8d,s7d,s6d,s5d,s4a,s4dh,s4dz,s3d,s2d,s0a,s1a,Term,Info";
-      const indexdatadown = "TrainNum,Kind,Destination,Dep,Cars,CTrainNum,CKind,CSta,DepSta,DepTime,s1d,s0d,s2d,s3d,s4a,s4d,s5d,s6d,s7d,s8a,s8d,s9d,s10d,s11d,s12d,s13d,s14a,s14d,s15d,s16d,s17d,s18a,s18ds,s35d,s36d,s37d,s38d,s39d,s40d,s41a,s41d,s42d,s43d,s44d,s45a,s18dh,s19d,s20d,s21d,s22d,s23ah,s23dz,s46a,s23dh,s24a,s24d,s25d,s26d,s27d,s28d,s29ah,s29dz,s47a,s29dh,s30d,s31d,s32d,s33a,s33dh,s33dy,s34a,s48d,s49d,s50d,s51d,s52a,s52d,s53a,Info";
+      const indexdataup   = "TrainNum,Kind,Destination,Cars,CTrainNum,CKind,CSta,DepSta,DepTime,s53d,s52a,s52d,s51d,s50d,s49d,s48d,s34d,s33ay,s33d,s32d,s31d,s30d,s29ah,s47d,s29az,s29d,s28d,s27d,s26d,s25d,s24a,s24d,s23ah,s46d,s23az,s23d,s22d,s21d,s20d,s19d,s18ah,s45d,s44d,s43d,s42d,s41a,s41d,s40d,s39d,s38d,s37d,s36d,s35d,s18as,s18d,s17d,s16d,s15d,s14a,s14d,s13d,s12d,s11d,s10d,s9d,s8a,s8d,s7d,s6d,s5d,s4a,s4dh,s4dz,s3d,s2d,s0a,s1a,Term,Info";
+      const indexdatadown = "TrainNum,Kind,Destination,Cars,CTrainNum,CKind,CSta,DepSta,DepTime,s1d,s0d,s2d,s3d,s4a,s4d,s5d,s6d,s7d,s8a,s8d,s9d,s10d,s11d,s12d,s13d,s14a,s14d,s15d,s16d,s17d,s18a,s18ds,s35d,s36d,s37d,s38d,s39d,s40d,s41a,s41d,s42d,s43d,s44d,s45a,s18dh,s19d,s20d,s21d,s22d,s23ah,s23dz,s46a,s23dh,s24a,s24d,s25d,s26d,s27d,s28d,s29ah,s29dz,s47a,s29dh,s30d,s31d,s32d,s33a,s33dh,s33dy,s34a,s48d,s49d,s50d,s51d,s52a,s52d,s53a,Info";
       form.myfile.addEventListener( 'change', function(e) {
         var result = e.target.files[0];
         console.log(result);
@@ -54,7 +54,7 @@
             for (var i = 0; i < 72; i++){
               outarr[i] += "," + (arr[72*j+i]).replace(/^.*?,/, "").replace(/\s/g, "");
             }
-            console.log(outarr);
+            //console.log(outarr);
           }
 
     //転置ここから
@@ -73,9 +73,16 @@
           }
     //転置ここまで
 
-          for (var i = 0; i < invoutarr.length; i++) {
+          if(form.ud.value == "up")
+            invoutarr.unshift(indexdataup.split(','));
+          if(form.ud.value == "down")
+            invoutarr.unshift(indexdatadown.split(','));
 
-      //種別置換
+
+          for (var i = 1; i < invoutarr.length; i++) {
+
+
+          //種別置換
             var kind = "";
             switch (invoutarr[i][1]) {
               case "":
@@ -106,24 +113,110 @@
             }
             invoutarr[i][1] = kind;
 
-            //笹塚分離
-            //69が数字なら空白を67に追加，数位じゃないなら66に追加
-            if(form.ud == "up")
-              invoutarr[i].splice(invoutarr[i][69].search(/^[0-9]+$/) >= 0 ? 66 : 65, 0, "");
+            //両数などの空欄追加
+            invoutarr[i].splice(3, 0, "", "", "", "", "");
+            if(form.ud.value == "up") invoutarr[i].splice(3, 0, "");
+            //下りはDepがあるので上りだけも一つ追加
 
-            //北野分離
-            if(form.ud == "down")
-              invoutarr[i][63].search(/^[0-9]+$/) >= 0 ? invoutarr[i].splice(63, 0, "∥") : invoutarr[i].splice(62, 0, "");
+
+            //種別変更後種別チェック
+            var cknd;
+            // var infoKanji = invoutarr[i][78].match(/[特行快各]/g);
+            // //特から特急と準特急の場合分け
+            //
+            // //行から急行と区間急行の場合分け
+            //
+            // if(infoKanji.length > 1) alert("種別変更種別エラー");
+            const cntinfo = form.ud.value == "up" ? 77 : 76;
+
+            //種別変更駅チェック
+            var csta;
+            console.log(invoutarr[i]);
+            var infoKanji = invoutarr[i][cntinfo].match(/[不調線多]/g);
+            // console.log(infoKanji);
+            if(infoKanji != null){
+              if(infoKanji.length > 1) alert("種別変更駅エラー");
+              switch (infoKanji[0]) {
+                case "不":
+                  csta = 29;
+                  break;
+                case "調":
+                  csta = 18;
+                  break;
+                case "線":
+                  csta = 0;
+                  break;
+                case "多":
+                  csta = 41;
+                  break;
+                default:
+                 csta = "";
+              }
+              invoutarr[i][6] = csta;
+              // console.log(csta);
+            }
+
+            //備考から種別変更取得
+            var infoHaragana = invoutarr[i][cntinfo].match(/[ぁ-ん]/g);
+            if(infoHaragana != null){
+              var infoKana = infoHaragana.join("");
+              //までならinfoの列番は変更前
+              if(infoKana == "まで"){
+                var infoNum = invoutarr[i][cntinfo].match(/[0-9]/g).join("");
+                //infoの列番から種別を指定
+                var infoKind = trainNum2Kind(infoNum);
+                invoutarr[i][4] = invoutarr[i][0];
+                invoutarr[i][0] = infoNum;
+                invoutarr[i][5] = invoutarr[i][1];
+                invoutarr[i][1] = infoKind;
+              }
+              //からならinfoの列番は変更後
+              else if (infoKana == "から"){
+                var infoNum = invoutarr[i][cntinfo].match(/[0-9]/g).join("");
+                //infoの列番から種別を指定
+                var infoKind = trainNum2Kind(infoNum);
+                invoutarr[i][4] = infoNum;
+                invoutarr[i][5] = infoKind;
+              }
+            }
+
+
+
+            //上りの場合
+            if(form.ud.value == "up"){
+
+              //笹塚分離
+              //75が数字なら空白を71に追加，数位じゃないなら72に追加
+              invoutarr[i].splice(invoutarr[i][75].search(/^[0-9]+$/) >= 0 ? 72 : 71, 0, "");
+              // console.log(invoutarr[i]);
+            }
+
+            //下りのとき
+            if(form.ud.value == "down"){
+              //北野分離
+              invoutarr[i][68].search(/^[0-9]+$/) >= 0 ? invoutarr[i].splice(68, 0, "∥") : invoutarr[i].splice(67, 0, "");
 // TODO: 63とからへんがおかしい
+            }
 
-      //両数などの空欄追加
-            invoutarr[i].splice(3, 0, "", "", "", "", "", "");
+            //始発駅設定
+            var idx = 9;
+            if (invoutarr[i][8].replace(/[^0-9]/g, '')) { //もとからなんか入ってて数字が取れるなら
+                //それは新宿線内の始発駅なので
+              invoutarr[i][7] = invoutarr[i][8].replace(/[0-9]/g, ''); //数字を除去したものを発駅名
+              // TODO: 駅名じゃなくて駅ナンバーにすべきだけど新宿線の駅ナンバーがない
+              invoutarr[i][8] = invoutarr[i][8].replace(/[^0-9]/g, ''); //数字のみにしたものを発時刻
+            } else {
+              while (invoutarr[i][idx] == "") idx++;
+              if(idx >= cntinfo){
+                invoutarr.splice(i, 1);
+                idx = 9;
+              } else {
+                invoutarr[i][7] = invoutarr[0][idx].replace(/[^0-9]/g, '');
+                invoutarr[i][8] = invoutarr[i][idx];
+              }
+            }
           }
 
-          if(form.ud.value == "up")
-            invoutarr.unshift(indexdataup.split(','));
-          if(form.ud.value == "down")
-            invoutarr.unshift(indexdatadown.split(','));
 
           for (var i = 0; i < invoutarr.length; i++) {
             outstr += invoutarr[i] + "\n";
@@ -138,6 +231,19 @@
         const blob = new Blob([outstr], { "type" : "text/plain" });
         btn.href = window.URL.createObjectURL(blob);
       })
+
+    function trainNum2Kind(num){
+     return num[0] == "0" ? 5 :
+                     num[0] == "1" ? 3 :
+                     num[0] == "2" ? 1 :
+                     num[0] == "3" ? 4 :
+                     num[0] == "4" ? 2 :
+                     num[0] == "5" ? 0 :
+                     num[0] == "6" ? 0 :
+                     num[0] == "7" ? 6 : 9;
+                   }
+
+
     </script>
   </body>
 </html>
