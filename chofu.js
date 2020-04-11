@@ -122,7 +122,7 @@ function twoDimArray2json(array){ //受け取るのは先頭行データ付き�
     for (var j = 0; j < items.length; j++) {
       // 要素名：items[j]
       // データ：arrayD[j]
-      a_line[items[j]] = arrayD[j].replace("\r", '');
+      if(typeof(arrayD[i]) == "string") a_line[items[j]] = arrayD[j].replace("\r", '');
       //各lineに対応するobject a_lineの中に要素の数だけ要素名：データの構造を作る
     }
     jsonArray.push(a_line);
@@ -381,6 +381,7 @@ window.onload = function(){
   }
   // DEBUG: 強制平日
   DAY = "Weekday";
+  dayname.innerHTML = "平日";
 
   console.log(DAY);
   //dateStr = date.getFullYear() + String(date.getMonth() + 1) + date.getDate();
