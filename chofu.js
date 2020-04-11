@@ -89,6 +89,11 @@ function CSV2Array(str){ // 読み込んだCSVデータが文字列として渡�
   // 各行ごとにカンマで区切った文字列を要素とした二次元配列を生成
   for(var i=0;i<tmp.length;++i){
     result[i] = tmp[i].split(','); //カンマで区切る
+    for (var j = 0; j < result[i].length; j++) {
+      if(result[i][j].search(/^".*"$/) >= 0) result[i][j] = result[i][j].replace(/"/g, "");
+      //ダブルクオーテーションで囲まれてたら無くす
+      // TODO: ","とか" "の処理とかしてないので直すこと
+    }
   }
   return result;
 }
