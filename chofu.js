@@ -50,7 +50,7 @@ function CSVDia2json(day, dir) {
   console.log("day=" + day +", dir=" + dir + "; rawdia:");
   console.log(rawdia[day][dir]);
 }
-function CSV2json() {
+function CSVSta2json() {
   stations = twoDimArray2json(CSV2Array(this.responseText));
   console.log("stations data:");
   console.log(stations);
@@ -59,7 +59,7 @@ function getCSVDia(filename, day, dir) {
   getCSV(filename, CSVDia2json, day, dir);
 }
 function getCSVSta(filename) {
-  getCSV(filename, CSV2json);
+  getCSV(filename, CSVSta2json);
 }
 
 
@@ -119,10 +119,10 @@ function twoDimArray2json(array){ //受け取るのは先頭行データ付き�
     // カンマで区切られた各データに分割する
     var arrayD = array[i];
     //// 各データをループ処理する
+    console.log(arrayD);
     for (var j = 0; j < items.length; j++) {
       // 要素名：items[j]
       // データ：arrayD[j]
-      console.log(arrayD[j]);
       if(typeof(arrayD[i]) == "string") a_line[items[j]] = arrayD[j].replace("\r", '');
       //各lineに対応するobject a_lineの中に要素の数だけ要素名：データの構造を作る
     }
