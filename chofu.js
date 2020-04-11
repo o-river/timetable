@@ -379,6 +379,9 @@ window.onload = function(){
     DAY = "Holiday";
     dayname.innerHTML = "休日";
   }
+  // DEBUG: 強制平日
+  DAY = "Weekday";
+
   console.log(DAY);
   //dateStr = date.getFullYear() + String(date.getMonth() + 1) + date.getDate();
   //getTrainDay(datestr);
