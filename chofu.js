@@ -99,8 +99,10 @@ function twoDimArray2json(array){ //受け取るのは先頭行データ付き�
   console.log(array);
   // 1行目から「項目名」の配列を生成する
   var items = array[0];
+  items[items.length-1] = items[items.length-1].replace("\r", '');
+  console.log("items[i]:");
   for (var i = 0; i < items.length; i++) {
-  //  console.log(items[i]);
+    console.log(items[i]);
   }
 
   // CSVデータの配列の各行をループ処理する
@@ -115,7 +117,7 @@ function twoDimArray2json(array){ //受け取るのは先頭行データ付き�
     for (var j = 0; j < items.length; j++) {
       // 要素名：items[j]
       // データ：arrayD[j]
-      a_line[items[j]] = arrayD[j];
+      a_line[items[j]] = arrayD[j].replace("\r", '');
       //各lineに対応するobject a_lineの中に要素の数だけ要素名：データの構造を作る
     }
     jsonArray.push(a_line);
@@ -126,7 +128,7 @@ function twoDimArray2json(array){ //受け取るのは先頭行データ付き�
 }
 
 
-//keioの駅探時刻表から平日・土休日を主屋し返す関数
+//keioの駅探時刻表から平日・土休日を取得し返す関数
 function getTrainDay(date) {
   var url = "https://keio.ekitan.com/sp/T5?dw=3&slCode=262-0&d=1&dt=";
   getCSV(url + date, setTrainDay)
@@ -205,7 +207,7 @@ function makeTimetable(id = "L1", day = DAY, ud, sta, dir = ""){
   if(ud != ""){
     dia[day][id] = [];
     for (var i = 0; i < rawdia[day][ud].length; i++){
-      if(isNaN(rawdia[day][ud][i]["s" + sta + "d" + dir]) == false && rawdia[day][ud][i]["s" + sta + "d" + dir] != ""){
+      if(isTrainTime(rawdia[day][ud][i]["s" + sta + "d" + dir])){
         var diatrain = rawdia[day][ud][i];
         diatrain.Time = Number(rawdia[day][ud][i]["s" + sta + "d" + dir]);
         if(diatrain.Time < 300) diatrain.Time += 2400;
@@ -562,6 +564,15 @@ function KindBColor(id) {
   }
 }
 
+//列車と駅を与えるとその駅発時におけるその列車の種別を返す
+function TrainKind(train, sta) {
+  if(train.TrainNum.slice(0,4) % 2){
+    return sta < train.CSta ? train.Kind : train.CKind;
+  }else{
+    return sta > train.CSta ? train.Kind : train.CKind;
+  }
+}
+
 function PressWidth(d, n) {
   if(d.length > n){
     return "<span style=\"transform: scaleX(" + n / d.length + "); white-space: nowrap;\">" + d + "</span>";
@@ -654,6 +665,43 @@ function isDep(train){
   return "";
 }
 
+function isTrainTime(time) {
+  return time.search(/^\d{3,4}$/) < 0 ? false : true;
+}
+
+function StopStations(train) {
+  var str = "";
+  var time = "";
+  var snd = "";
+  var sndlist = ["a", "ah", "as", "ay", "az", "d"];
+  if ((train.TrainNum).slice(0,4) % 2) { //奇数: 下り
+    for (var i = 0; i < stations.length; i++) {
+      for (dir of sndlist) {
+        if (train["s" + i + dir] !== undefined && train["s" + i + dir] != ""){
+          time = train["s" + i + dir];
+          break;
+        }
+      }
+//      if(i>51) console.log("bef i=" + i + "; time=" + time + "bit=" + time.charCodeAt(0));
+//      if(i>51) console.log("aft i=" + i + "; time=" + time);
+      str += stations[i].Kind >= TrainKind(train, i) && isTrainTime(time) ? stations[i].OneLetter : "　";
+      time = "";
+    }
+  } else { //偶数: 上り
+    for (var i = stations.length - 1; i >= 0; i--) {
+      for (dir of sndlist) {
+        if (train["s" + i + dir] !== undefined && train["s" + i + dir] != ""){
+          time = train["s" + i + dir];
+          break;
+        }
+      }
+      str += stations[i].Kind >= TrainKind(train, i) && isTrainTime(time) ? stations[i].OneLetter : "　";
+      time = "";
+    }
+  }
+  return str;
+}
+
 
 function display(LineID, nowtime, sta, DispNum = 3) {
   // 各項目の取得
@@ -710,28 +758,17 @@ function display(LineID, nowtime, sta, DispNum = 3) {
             //下りのとき表示駅が変更駅より小さいならまだなので変更前種別，大きいか同じなら過ぎたので変更後種別
 
             //Kind
+            var kindfrom = "Kind";
             if(dia[DAY][LineID][i+j].CKind != ""){
               if(stations[sta][LineID + "ud"] == "U"){
-                if(sta > dia[DAY][LineID][i+j].CSta) {
-                  detail.Kind[LineID][j].innerHTML = KindStr(dia[DAY][LineID][i+j].Kind);
-                  detail.Kind[LineID][j].style.backgroundColor = KindBColor(dia[DAY][LineID][i+j].Kind);
-                } else {
-                  detail.Kind[LineID][j].innerHTML = KindStr(dia[DAY][LineID][i+j].CKind);
-                  detail.Kind[LineID][j].style.backgroundColor = KindBColor(dia[DAY][LineID][i+j].CKind);
-                }
+                if(sta <= dia[DAY][LineID][i+j].CSta) kindfrom = "CKind";
               }else{
-                if(sta < dia[DAY][LineID][i+j].CSta) {
-                  detail.Kind[LineID][j].innerHTML = KindStr(dia[DAY][LineID][i+j].Kind);
-                  detail.Kind[LineID][j].style.backgroundColor = KindBColor(dia[DAY][LineID][i+j].Kind);
-                } else {
-                  detail.Kind[LineID][j].innerHTML = KindStr(dia[DAY][LineID][i+j].CKind);
-                  detail.Kind[LineID][j].style.backgroundColor = KindBColor(dia[DAY][LineID][i+j].CKind);
-                }
+                if(sta >= dia[DAY][LineID][i+j].CSta) kindfrom = "CKind";
               }
-            }else{
-              detail.Kind[LineID][j].innerHTML = KindStr(dia[DAY][LineID][i+j].Kind);
-              detail.Kind[LineID][j].style.backgroundColor = KindBColor(dia[DAY][LineID][i+j].Kind);
             }
+            detail.Kind[LineID][j].innerHTML = KindStr(dia[DAY][LineID][i+j][kindfrom]);
+            detail.Kind[LineID][j].style.backgroundColor = KindBColor(dia[DAY][LineID][i+j][kindfrom]);
+
 
             //Destination
             detail.Dest[LineID][j].innerHTML = PressWidth(dia[DAY][LineID][i+j].Destination, 5);
@@ -739,6 +776,7 @@ function display(LineID, nowtime, sta, DispNum = 3) {
             detail.Dep[LineID][j].innerHTML = dia[DAY][LineID][i+j].IsDep == true ? "始発" : "";
             // l_info[j].innerHTML = dia[DAY][LineID][i+j].Info;
             detail.Info[LineID][j].innerHTML = (i+j) + "; " + dia[DAY][LineID][i+j].TrainNum + ": " + dia[DAY][LineID][i+j].Info;
+            detail.Info[LineID][j].innerHTML += "<BR>" + StopStations(dia[DAY][LineID][i+j]);
             detail.Delay[LineID][j].innerHTML = getDelay(dia[DAY][LineID][i+j]);
             d_tnum[LineID][j] = i+j;
           } else {
