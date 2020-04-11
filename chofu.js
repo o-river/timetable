@@ -119,7 +119,7 @@ function twoDimArray2json(array){ //受け取るのは先頭行データ付き�
     // カンマで区切られた各データに分割する
     var arrayD = array[i];
     //// 各データをループ処理する
-    console.log(arrayD);
+    // console.log(arrayD);
     for (var j = 0; j < items.length; j++) {
       // 要素名：items[j]
       // データ：arrayD[j]
